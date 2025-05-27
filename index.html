@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>StratoNotes</title>
+<link rel="stylesheet" href="style.min.css">
+
     <link rel="icon" type="image/png" href="app-icon.png" />
     <script>
       document.addEventListener("DOMContentLoaded", () => {
@@ -173,17 +175,47 @@
           <button class="btn-disabled py-3 px-6 rounded-full w-max">
             Download (Coming Soon)
           </button>
+<button id="keyboard-toggle" onclick="toggleKeyboard()" style="
+  margin-top: 20px;
+  background: #fff;
+  opacity: 0.8;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 9999;
+">
+  Keyboard
+</button>
+
+
         </div>
       </div>
 
       <div class="mt-10 md:mt-0 md:ml-16">
         <div class="border-4 border-pink-500 rounded-xl p-2 bg-black">
           <div class="h-[500px] w-[250px] overflow-hidden rounded-md">
-            <img
-              src="screenshot.png"
-              alt="App Screenshot"
-              class="object-cover h-full w-full"
-            />
+<div class="h-[500px] w-[250px] overflow-hidden rounded-md relative">
+  <img src="screenshot.png" alt="App Screenshot" class="object-cover h-full w-full" />
+ <div id="strato-chat" style="
+  position: absolute;
+  top: 99px;     /* Move it down */
+  left: 1px;     /* Center it better */
+  right: 1px;
+  width: 247px;   /* Wider for the phone frame */
+  height: 238px;  /* Adjust height to fit */
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 5;
+">
+  
+    <strong>StratoNotes Chat</strong>
+    <div id="chat-messages"></div>
+</div>
+
           </div>
         </div>
       </div>
@@ -247,7 +279,16 @@
 
 
 
-<script src="script.js"></script>
+
+<!-- reCAPTCHA script -->
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+<!-- Add this inside your main content, ideally near the submit button -->
+<div class="g-recaptcha" data-sitekey="6LeAZkorAAAAAFJStjHUpQF2hduEjOiOXlz_uMdP"></div>
+
+
+
+<script src="script.min.js"></script>
 
   </body>
 </html>

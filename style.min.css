@@ -1,0 +1,1 @@
+#strato-keyboard{width:100%;max-width:100vw;box-sizing:border-box}@media (max-width:768px){#strato-keyboard{grid-template-columns:repeat(4,1fr);padding:10px;overflow-x:auto}#strato-keyboard button{font-size:12px;padding:8px;white-space:nowrap}}

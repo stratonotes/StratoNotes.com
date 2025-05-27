@@ -12,27 +12,34 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const messagesRef = db.collection("messages");
 
-// Create overlays
-function createOverlays() {
-  // Chat overlay
-  const chatOverlay = document.createElement("div");
-  chatOverlay.id = "strato-chat";
-  chatOverlay.style.position = "fixed";
-  chatOverlay.style.bottom = "20px";
-  chatOverlay.style.right = "20px";
-  chatOverlay.style.width = "300px";
-  chatOverlay.style.maxHeight = "400px";
-  chatOverlay.style.overflowY = "auto";
-  chatOverlay.style.background = "rgba(0, 0, 0, 0.8)";
-  chatOverlay.style.color = "#fff";
-  chatOverlay.style.padding = "10px";
-  chatOverlay.style.borderRadius = "8px";
-  chatOverlay.style.fontSize = "14px";
-  chatOverlay.style.zIndex = "9999";
-  chatOverlay.innerHTML = "<strong>StratoNotes Chat</strong><div id='chat-messages'></div>";
-  document.body.appendChild(chatOverlay);
+const phrasePages = [
+  [ // Page 1
+    "StratoNotes.com", "Awesome!", "Hard Work!", "Hello!", "Goodbye", "Shoot for the Moon!",
+    "Follow StratoNotes on X", "I love you!", "Big day today", "Progress", "Frontend focus",
+    "Backend focus", "Give Kindness", "ChatGPT", "Take notes", "Internet Cats", "GoPro Cat",
+    "Open Source", "Dear StratoNotes,", "Today is the day", "Winning!", "SkyFateLabs",
+    "Android Studio", "We go together!", "Stage I", "Discovery", "Launch", "Payload"
+  ],
+  [ // Emojis
+    "🚀", "🎶", "🌌", "🎨", "😎", "🤖", "💾", "🐱", "🐶", "💡", "💥", "💻", "📱", "🎧", "🎸", "🎮", "🚢", "🧠", "⚡", "🔭", "📚", "📝", "📦", "📅", "📡", "💬", "🏆", "🔒"
+  ],
+[ // Page 3 - Additional terms
+    "Trust", "Respect", "Discipline", "Feedback", "Leadership", "Productivity",
+    "Creativity", "Curiosity", "Focus", "Inspiration", "Learning", "Motivation", "Patience", "Resilience",
+    "Self-awareness", "Transparency", "Vision", "Growth", "Adaptability", "Consistency", "Courage", "Kindness",
+    "Empathy", "Clarity", "Commitment", "Teamwork", "Humility", "Drive"
+  ]
+];
 
-  // Keyboard overlay placeholder
+let currentPage = 0;
+let currentMessage = [];
+
+function toggleKeyboard() {
+  const keyboard = document.getElementById("strato-keyboard");
+  keyboard.style.display = (keyboard.style.display === "none") ? "block" : "none";
+}
+
+function createOverlays() {
   const keyboardOverlay = document.createElement("div");
   keyboardOverlay.id = "strato-keyboard";
   keyboardOverlay.style.position = "fixed";
@@ -43,11 +50,9 @@ function createOverlays() {
   keyboardOverlay.style.color = "#fff";
   keyboardOverlay.style.padding = "10px";
   keyboardOverlay.style.zIndex = "9999";
-  keyboardOverlay.innerHTML = "<strong>Keyboard coming soon...</strong>";
   document.body.appendChild(keyboardOverlay);
 }
 
-// Fetch and display messages
 function fetchMessages() {
   messagesRef.orderBy("timestamp", "desc").onSnapshot((snapshot) => {
     const chatBox = document.getElementById("chat-messages");
@@ -56,99 +61,155 @@ function fetchMessages() {
     snapshot.forEach((doc) => {
       const data = doc.data();
       const p = document.createElement("p");
-      p.textContent = data.text || "[No text]";
-      chatBox.appendChild(p);
+
+// Create timestamp element
+const timestamp = document.createElement("small");
+const date = data.timestamp?.toDate();
+timestamp.textContent = date ? date.toLocaleString() : "";
+timestamp.style.display = "block";
+timestamp.style.fontSize = "6px";
+timestamp.style.opacity = "0.6";
+timestamp.style.marginBottom = "2px";
+
+// Create message content
+const text = document.createElement("span");
+text.textContent = data.text || "[No text]";
+
+// Append timestamp first, then message
+p.appendChild(timestamp);
+p.appendChild(text);
+chatBox.appendChild(p);
+
     });
   });
 }
 
-// Initialize
-document.addEventListener("DOMContentLoaded", () => {
-  createOverlays();
-  fetchMessages();
-});
-
-
-
-
-
-
-
-
-
-function buildKeyboardPage(phrases = [], page = 0, totalPages = 1) {
+function renderCurrentPage() {
   const container = document.getElementById("strato-keyboard");
-  container.innerHTML = ""; // Clear current content
+  container.innerHTML = "";
 
-  // Title
   const header = document.createElement("div");
+  header.style.display = "flex";
+  header.style.justifyContent = "space-between";
+  header.style.alignItems = "center";
   header.style.marginBottom = "10px";
-  header.textContent = `Phrase Page ${page + 1} of ${totalPages}`;
+
+  const title = document.createElement("div");
+  title.textContent = `Page ${currentPage + 1} of ${phrasePages.length}`;
+  header.appendChild(title);
+
+  const backBtn = document.createElement("button");
+  backBtn.textContent = "←";
+  backBtn.onclick = () => {
+    currentMessage.pop();
+    updateChatPreview();
+  };
+  header.appendChild(backBtn);
+
   container.appendChild(header);
 
-  // Phrase buttons
   const grid = document.createElement("div");
   grid.style.display = "grid";
   grid.style.gridTemplateColumns = "repeat(4, 1fr)";
   grid.style.gap = "5px";
 
-  phrases.forEach(phrase => {
+  phrasePages[currentPage].forEach(phrase => {
     const btn = document.createElement("button");
     btn.textContent = phrase;
-    btn.style.padding = "6px";
-    btn.style.border = "none";
-    btn.style.borderRadius = "6px";
-    btn.style.background = "#333";
-    btn.style.color = "#fff";
-    btn.style.cursor = "pointer";
-    btn.addEventListener("click", () => {
-      alert(`Clicked: ${phrase}`); // this will be replaced with real insertion logic
-    });
+    btn.classList.add("keyboard-btn");
+btn.addEventListener("click", () => {
+  if (currentMessage.length < 7) {
+    currentMessage.push(phrase);
+  } else {
+    currentMessage[currentMessage.length - 1] = phrase; // Replace last term
+  }
+  updateChatPreview();
+});
+
     grid.appendChild(btn);
   });
 
   container.appendChild(grid);
+
+  // Controls row - 4 columns: Keyboard (white), Prev, Next, Submit
+  const controls = document.createElement("div");
+  controls.style.marginTop = "10px";
+  controls.style.display = "grid";
+  controls.style.gridTemplateColumns = "repeat(4, 1fr)";
+  controls.style.gap = "5px";
+
+  const keyboardToggle = document.createElement("button");
+  keyboardToggle.textContent = "Close Keyboard";
+  keyboardToggle.style.background = "#fff";
+  keyboardToggle.style.color = "#000";
+  keyboardToggle.style.padding = "6px";
+  keyboardToggle.style.borderRadius = "6px";
+  keyboardToggle.style.border = "none";
+  keyboardToggle.style.cursor = "pointer";
+  keyboardToggle.onclick = toggleKeyboard;
+
+  const prevBtn = document.createElement("button");
+  prevBtn.textContent = "Prev";
+  prevBtn.disabled = currentPage === 0;
+  prevBtn.onclick = () => {
+    currentPage = (currentPage - 1 + phrasePages.length) % phrasePages.length;
+    renderCurrentPage();
+  };
+
+  const nextBtn = document.createElement("button");
+  nextBtn.textContent = "Next";
+  nextBtn.disabled = currentPage === phrasePages.length - 1;
+  nextBtn.onclick = () => {
+    currentPage = (currentPage + 1) % phrasePages.length;
+    renderCurrentPage();
+  };
+
+  const sendBtn = document.createElement("button");
+sendBtn.textContent = "Submit";
+sendBtn.onclick = () => {
+  const captchaResponse = grecaptcha.getResponse();
+  if (!captchaResponse) {
+    alert("Please verify that you are not a robot.");
+    return;
+  }
+
+  const text = currentMessage.join(" ");
+  sendMessage(text);
+  currentMessage = [];
+  updateChatPreview();
+  grecaptcha.reset(); // Reset captcha after successful submit
+};
+
+
+  controls.appendChild(keyboardToggle);
+  controls.appendChild(prevBtn);
+  controls.appendChild(nextBtn);
+  controls.appendChild(sendBtn);
+  container.appendChild(controls);
 }
 
-
-
-
-
-
-
-
-
-// Sample phrases
-const phrasePages = [
-  [
-    "StratoNotes.com", "Awesome!", "Hard Work!", "Hello!", "Goodbye", "Shoot for the Moon!",
-    "Follow StratoNotes on X", "I love you!", "Big day today", "Progress", "Frontend focus",
-    "Backend focus", "Give Kindness", "ChatGPT", "Take notes", "Internet Cats", "GoPro Cat",
-    "Open Source", "Dear StratoNotes,", "Today is the day", "Winning!", "SkyFateLabs",
-    "Android Studio", "We go together!", "Stage I", "Discovery", "Launch", "Payload"
-  ]
-  // Add more pages later
-];
-
-let currentPage = 0;
-
-function renderCurrentPage() {
-  buildKeyboardPage(phrasePages[currentPage], currentPage, phrasePages.length);
+function updateChatPreview() {
+  const chatBox = document.getElementById("chat-messages");
+  if (!chatBox) return;
+  chatBox.innerHTML = `<p>${currentMessage.join(" ")}</p>`;
 }
 
-// Wait until page is loaded and overlays exist
+function sendMessage(text) {
+  messagesRef.add({
+    text: text,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  })
+  .then(() => {
+    console.log("Message added!");
+  })
+  .catch((error) => {
+    console.error("Error adding message: ", error);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  createOverlays();
+  document.getElementById("strato-keyboard").style.display = "none";
+  fetchMessages();
   renderCurrentPage();
 });
-
-
-
-
-
-
-
-
-
-
-
-
